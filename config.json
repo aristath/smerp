@@ -1,0 +1,7 @@
+{
+  "host": "127.0.0.1",
+  "port": 3210,
+  "origin": "http://127.0.0.1:3210",
+  "timeZone": "Europe/Athens",
+  "dataFile": "data/smerp.json"
+}

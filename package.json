@@ -1,0 +1,29 @@
+{
+  "name": "smerp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node scripts/build.mjs && node --watch src/server.ts",
+    "build": "tsc && node scripts/build.mjs",
+    "start": "node dist/server.js",
+    "check": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@alpinejs/csp": "^3.17.5",
+    "@hono/node-server": "^2.1.9",
+    "decimal.js": "^10.6.0",
+    "hono": "^4.13.19",
+    "zxing-wasm": "^3.1.7"
+  },
+  "devDependencies": {
+    "@types/alpinejs": "^3.17.0",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

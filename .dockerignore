@@ -1,0 +1,16 @@
+**
+!package.json
+!package-lock.json
+!tsconfig.json
+!src/
+!src/**
+!test/
+!test/**
+!scripts/
+!scripts/build.mjs
+!public/
+!public/**
+!config.docker.json
+public/app.js
+public/scanner.js
+public/zxing_reader.wasm

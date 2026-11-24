@@ -1,0 +1,20 @@
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { Hono } from 'hono';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { parseArgs } from 'node:util';
+import { createApp } from './app.ts';
+import { Store } from './store.ts';
+
+const { values } = parseArgs({ options: { config: { type: 'string', default: 'config.json' } } });
+const config = JSON.parse(await readFile(values.config!, 'utf8')) as { host: string; port: number; origin: string; timeZone: string; dataFile: string };
+if (!config.host || !Number.isInteger(config.port) || !config.dataFile || !config.origin || !config.timeZone) throw new Error('Check host, port, origin, timeZone, and dataFile in your config file.');
+new Intl.DateTimeFormat('en', { timeZone: config.timeZone });
+const store = new Store(resolve(config.dataFile));
+const app = new Hono();
+app.use('/assets/*', async (c, next) => { c.header('Cache-Control', 'no-cache'); await next(); });
+app.get('/assets/*', serveStatic({ root: './public', rewriteRequestPath: path => path.replace(/^\/assets/, '') }));
+app.route('/', createApp(store, config));
+const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }, () => console.log(`Smerp is ready at ${config.origin}`));
+for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => server.close(() => process.exit(0)));
