@@ -72,7 +72,7 @@ Android checks:
 (cd android && ./gradlew :app:assembleDebug :app:lint)
 ```
 
-With an emulator or test phone, verify first launch with networking disabled, both themes after force-stop/relaunch, edits and stock surviving restart, camera grant/denial, staged receiving, JSON export and restore through the file picker, Android Back, rotation, background/resume, and keyboard visibility. Debug builds allow WebView inspection; release builds disable it. Use a synthetic workshop for destructive restore tests.
+With an emulator or test phone, verify first launch with networking disabled, both themes after force-stop/relaunch, edits and stock surviving restart, camera grant/denial, staged receiving, JSON export and restore through the file picker, Android Back, rotation, background/resume, and keyboard visibility. Debug builds enable WebView inspection; release builds disable it on production Android. Android `userdebug` images can [force inspection regardless of this setting](https://chromium.googlesource.com/chromium/src/+/main/android_webview/glue/java/src/com/android/webview/chromium/SharedStatics.java). Use a synthetic workshop for destructive restore tests.
 
 ## Run options
 
