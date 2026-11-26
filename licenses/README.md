@@ -2,6 +2,10 @@
 
 | Component | License notice |
 | --- | --- |
+| Go runtime | [BSD](go.txt) |
+| Go Mobile | [BSD and patent grant](go-mobile.txt) |
+| AndroidX | [Apache-2.0](androidx.txt) |
+| Kotlin runtime | [Apache-2.0 and notices](kotlin.txt) |
 | shopspring/decimal | [MIT](decimal.txt) |
 | samcharles93/webview_go | [MIT](webview.txt) |
 | Alpine CSP | [MIT](alpine.txt) |
@@ -13,4 +17,4 @@
 | MinGW-w64 runtime | [Runtime notices](mingw-runtime.txt) |
 | winpthreads | [Runtime notices](winpthreads.txt) |
 
-Desktop packages include these notices. System WebKit/GTK and WebView2 runtimes are supplied by the operating system or installed separately.
+Desktop packages and the Android APK include these notices. System WebKit/GTK and WebView2 runtimes are supplied by the operating system or installed separately.

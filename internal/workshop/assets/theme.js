@@ -11,8 +11,12 @@ if (!crypto.randomUUID) crypto.randomUUID = () => {
 (() => {
   let saved;
   try {
-    saved = localStorage.getItem('smerp-theme');
+    saved = window.SmerpAndroid?.getTheme() ?? localStorage.getItem('smerp-theme');
   } catch { /* Storage may be disabled. */ }
   document.documentElement.dataset.theme = saved === 'light' || saved === 'dark'
     ? saved : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (window.SmerpAndroid) {
+    new MutationObserver(() => SmerpAndroid.setTheme(document.documentElement.dataset.theme))
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
 })();

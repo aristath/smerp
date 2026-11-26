@@ -3,7 +3,8 @@
 !/bin/Smerp-windows-amd64.zip
 !/bin/Smerp-macos-universal.zip
 !/bin/Smerp-linux-amd64.tar.gz
+!/bin/Smerp-android.apk
 !/bin/SHA256SUMS
 data/
 *.exe
-smerp
+/smerp

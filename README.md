@@ -2,7 +2,7 @@
 
 Smerp is a planner for small workshops. Track your supplies, calculate what each product costs to make, manage customer orders, and see what you need to buy and produce.
 
-Use it on Windows, macOS or Linux, in an app window or your web browser. You can also open the same workshop from a phone or tablet.
+Use it on Windows, macOS, Linux or Android. Each app keeps its workshop on the device and works offline. You can also open a computer's workshop from another device's web browser.
 
 ![Workshop overview showing material shortages, open orders and stock warnings](docs/images/overview.png)
 
@@ -41,6 +41,18 @@ sudo dnf install gtk3 webkit2gtk4.1
 ```
 
 If Smerp reports that port 3210 is already in use, close the other running instance and try again. To use another port for a different workshop, choose its data file with `-data PATH` and its port with `-listen 127.0.0.1:3211`.
+
+## Android
+
+Download [Smerp-android.apk](bin/Smerp-android.apk) on your phone, open it, and allow installation from your browser or file manager when Android asks. Then open **Smerp** from your app drawer. Android 8 or newer and a 64-bit ARM or x86 device are required.
+
+Keep Android System WebView enabled and up to date. The app runs entirely on your phone, including barcode scanning. No computer or internet connection is needed. Allow camera access when you first choose **Scan barcode**. You can also enter codes manually.
+
+Use **Settings → Backup and restore → Download backup** to save a JSON copy using Android's file picker. Choose a backup under **Restore a backup** to preview and restore it. Back up before uninstalling Smerp or clearing its app data; both remove the workshop stored on the phone.
+
+To move a workshop between your computer and phone, download a backup on one device and restore it on the other. Each installation keeps its own copy; changes do not sync automatically.
+
+<img src="docs/images/android.png" alt="Smerp running offline on Android in dark mode" width="360">
 
 ## Set up your workshop
 
@@ -123,7 +135,7 @@ Use **Receive** to add stock and **Correct count** to replace the recorded total
 
 For products made for general stock, use **Make**. For a customer's order, record production from that order so the finished products stay assigned to it. Use **Receive** when finished products arrive without being made from your stored materials.
 
-## Use your phone or tablet
+## Open your computer’s workshop on another device
 
 Run Smerp on the computer that holds your workshop, allowing access on your network:
 
@@ -151,13 +163,14 @@ To restore one, select the file under **Restore a backup** and choose **Preview 
 
 If Smerp reports that its working file needs attention, download the original file from the recovery screen, then restore a valid backup.
 
-Your workshop is saved on the computer running Smerp. The default file location is:
+Your workshop is saved on the device running Smerp. The default file location is:
 
 | Computer | Data file |
 | --- | --- |
 | Windows | `%AppData%\smerp\workshop.json` |
 | Mac | `~/Library/Application Support/smerp/workshop.json` |
 | Linux | `~/.config/smerp/workshop.json`, or `$XDG_CONFIG_HOME/smerp/workshop.json` when set |
+| Android | Private app storage; use **Download backup** to export it. |
 
 To choose another location, start Smerp with `-data PATH`. Use one running Smerp process for each data file and connect your other devices to that process.
 
