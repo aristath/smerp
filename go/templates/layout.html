@@ -16,3 +16,5 @@
 {{define "recovery"}}<header class="page-heading"><div><h1>Your data needs attention</h1><p>Your existing file has been kept unchanged.</p></div></header><section class="panel narrow"><p>{{.Error}}</p><p>You can download the existing file or restore a valid backup.</p><a class="button secondary" href="/backup">Download existing file</a>{{template "restore-form" .}}</section>{{end}}
 {{define "error"}}<header class="page-heading"><div><h1>This action needs attention</h1><p>Your saved data has been kept.</p></div></header><a class="button secondary" href="/">Back to overview</a>{{end}}
 {{define "not-found"}}<section class="empty-state"><h2>This page isn’t here</h2><p>Return to your workshop to continue.</p><a class="button secondary" href="/">Go to overview</a></section>{{end}}
+
+{{define "setup"}}<section class="empty-state"><h2>Add {{.Prerequisite}} first</h2><p>Then you can continue with this form.</p><a class="button secondary" href="/{{.Prerequisite}}">Go to {{.Prerequisite}}</a></section>{{end}}

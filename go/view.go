@@ -15,6 +15,7 @@ import (
 )
 
 type Page struct {
+	Prerequisite                                string
 	Data                                        *Data
 	Screen, Title, Path, Day, ID, Error, Notice string
 	Revision                                    string
@@ -253,6 +254,21 @@ func dateInput(label, name, value, hint string) Input {
 
 var safeReturn = regexp.MustCompile(`^/(?:orders|suppliers|materials|products|inventory|schedule)?(?:/[\w-]+)?$`)
 var views = template.Must(template.New("ui").Funcs(template.FuncMap{
+	"compactDate": func(day, current string) string {
+		date := prettyDate(day)
+		if len(day) >= 4 && day[:4] == current[:4] {
+			return strings.TrimSuffix(date, " "+day[:4])
+		}
+		return date
+	},
+	"cutLabel": func(c Cut, unit string) string {
+		q := c.Quantity
+		if strings.EqualFold(strings.TrimSpace(unit), "m") && n(q).LessThan(whole(1)) {
+			q = n(q).Mul(whole(100)).String()
+			unit = "cm"
+		}
+		return fmt.Sprintf("%d × %s %s", c.Count, q, unit)
+	},
 	"stockLabel": func(s string) string {
 		if s == "receive" {
 			return "Quantity received"
@@ -428,7 +444,20 @@ func (a *App) page(w http.ResponseWriter, r *http.Request, screen, id string, fo
 		if id != "" {
 			p.Title = "Edit record"
 		}
-		if err := p.prepareEditor(section); err != nil {
+		if section == "materials" && len(d.Suppliers) == 0 {
+			p.Prerequisite = "suppliers"
+		}
+		if section == "products" && len(d.Materials) == 0 {
+			p.Prerequisite = "materials"
+		}
+		if section == "orders" && len(d.Products) == 0 {
+			p.Prerequisite = "products"
+		}
+		if p.Prerequisite != "" {
+			p.Screen = "setup"
+			p.Title = "Set up your workshop"
+			statusCode = 422
+		} else if err := p.prepareEditor(section); err != nil {
 			p.Screen = "error"
 			p.Error = err.Error()
 			statusCode = 422
