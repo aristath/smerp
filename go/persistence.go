@@ -18,11 +18,12 @@ import (
 var errConflict = errors.New("Something changed on another device. Review the latest values before saving again.")
 
 type Store struct {
-	mu      sync.RWMutex
-	path    string
-	data    *Data
-	raw     []byte
-	problem error
+	revision string
+	mu       sync.RWMutex
+	path     string
+	data     *Data
+	raw      []byte
+	problem  error
 }
 
 func fingerprint(raw []byte) string { hash := sha256.Sum256(raw); return hex.EncodeToString(hash[:]) }
@@ -31,7 +32,7 @@ func openStore(path string) (*Store, error) {
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
 	}
-	s := &Store{path: path, data: emptyData(), raw: raw}
+	s := &Store{path: path, data: emptyData(), raw: raw, revision: fingerprint(raw)}
 	if err == nil {
 		s.data, s.problem = decodeData(raw)
 		if s.problem != nil {
@@ -45,13 +46,13 @@ func openStore(path string) (*Store, error) {
 func (s *Store) snapshot() (*Data, string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.data, fingerprint(s.raw), s.problem
+	return s.data, s.revision, s.problem
 }
 func (s *Store) backup() []byte { s.mu.RLock(); defer s.mu.RUnlock(); return bytes.Clone(s.raw) }
 func (s *Store) update(revision string, replace *Data, change func(*Data) error) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if revision != fingerprint(s.raw) {
+	if revision != s.revision {
 		return errConflict
 	}
 	if s.problem != nil && replace == nil {
@@ -81,6 +82,7 @@ func (s *Store) update(revision string, replace *Data, change func(*Data) error)
 		return fmt.Errorf("Could not save workshop data: %w", err)
 	}
 	s.data, s.raw, s.problem = next, raw, nil
+	s.revision = fingerprint(raw)
 	return nil
 }
 func saveFile(path string, raw []byte) error {

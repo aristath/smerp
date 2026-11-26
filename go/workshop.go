@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/shopspring/decimal"
 )
@@ -50,7 +51,7 @@ func check(ok bool, message string) error {
 	return nil
 }
 func validText(s string, required bool) bool {
-	return len(s) <= 4000 && (!required || strings.TrimSpace(s) != "")
+	return utf8.RuneCountInString(s) <= 4000 && (!required || strings.TrimSpace(s) != "")
 }
 func parseAmount(s, label string, greater bool) (string, error) {
 	s = strings.Replace(strings.TrimSpace(s), ",", ".", 1)
@@ -264,7 +265,7 @@ func (d *Data) freeProducts() map[string]int {
 }
 
 func validateBarcode(b Barcode) error {
-	if !slices.Contains(barcodeFormats, b.Format) || len(b.Value) == 0 || len(b.Value) > 4000 {
+	if !slices.Contains(barcodeFormats, b.Format) || len(b.Value) == 0 || utf8.RuneCountInString(b.Value) > 4000 {
 		return errors.New("Enter a supported barcode (up to 4,000 characters).")
 	}
 	if b.Format == "QR_CODE" {

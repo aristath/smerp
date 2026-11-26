@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"os"
@@ -275,5 +276,28 @@ func TestBarcodesAndSystemDate(t *testing.T) {
 	}
 	if !strings.HasPrefix(barcodeKey(Barcode{"QR_CODE", "123"}), "qr:") {
 		t.Fatal("QR treated as numeric barcode")
+	}
+}
+
+func TestFailedAtomicReplacementRemovesTemporaryFile(t *testing.T) {
+	s := testStore(t, fixture())
+	_, rev, _ := s.snapshot()
+	before := s.backup()
+	target := filepath.Join(filepath.Dir(s.path), "not-a-file")
+	must(t, os.Mkdir(target, 0700))
+	must(t, os.WriteFile(filepath.Join(target, "keep"), []byte("keep"), 0600))
+	s.path = target
+	if err := s.update(rev, nil, func(d *Data) error { d.Settings.HourlyRate = "77"; return nil }); err == nil {
+		t.Fatal("replaced a nonempty directory")
+	}
+	if !bytes.Equal(before, s.backup()) {
+		t.Fatal("published failed replacement")
+	}
+	entries, err := os.ReadDir(filepath.Dir(target))
+	must(t, err)
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".smerp-") {
+			t.Fatal("temporary file left behind")
+		}
 	}
 }
