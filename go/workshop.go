@@ -318,7 +318,7 @@ func (d *Data) validate() error {
 	if !validText(d.Settings.Title, true) || !validText(d.Settings.Subtitle, false) {
 		return errors.New("Enter a workshop title and a valid subtitle.")
 	}
-	if !regexp.MustCompile(`^[A-Z]{3}$`).MatchString(d.Settings.Currency) {
+	if !validCurrency(d.Settings.Currency) {
 		return errors.New("Enter a valid currency code, such as EUR.")
 	}
 	if _, err := parseAmount(d.Settings.HourlyRate, "Hourly rate", false); err != nil {
@@ -440,7 +440,7 @@ func (d *Data) validate() error {
 			return errors.New("Invalid order details, dates or status.")
 		}
 		if o.active() || o.Status == "COMPLETED" || o.ConfirmedAt != "" {
-			if _, err := time.Parse(time.RFC3339Nano, o.ConfirmedAt); err != nil || !regexp.MustCompile(`^[A-Z]{3}$`).MatchString(o.Currency) {
+			if _, err := time.Parse(time.RFC3339Nano, o.ConfirmedAt); err != nil || !validCurrency(o.Currency) {
 				return errors.New("Missing saved confirmation details.")
 			}
 		}
@@ -509,4 +509,8 @@ func cloneData(d *Data) *Data {
 		panic(err)
 	}
 	return &copy
+}
+
+func validCurrency(code string) bool {
+	return len(code) == 3 && strings.Contains(currencyCodes, " "+code+" ")
 }
