@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -28,7 +29,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	mode := flag.String("mode", "browser", "browser, window, or server (without opening a UI)")
+	defaultMode := "browser"
+	executable, _ := os.Executable()
+	if runtime.GOOS == "darwin" && strings.Contains(executable, ".app/Contents/MacOS/") {
+		defaultMode = "window"
+	}
+	mode := flag.String("mode", defaultMode, "browser, window, or server (without opening a UI)")
 	address := flag.String("listen", "127.0.0.1:3210", "HTTP listen address; use 0.0.0.0:3210 for other devices")
 	path := flag.String("data", filepath.Join(config, "smerp", "workshop.json"), "workshop JSON file")
 	origin := flag.String("origin", "", "optional browser-facing URL for a reverse proxy")

@@ -7,7 +7,12 @@ import (
 )
 
 func newWindow(location string) (webview.WebView, error) {
-	return webview.NewWithOptions(webview.Options{Title: "Smerp", Width: 1280, Height: 900, Hint: webview.HintNone, URL: location})
+	w, err := webview.NewWithOptions(webview.Options{Title: "Smerp", Width: 1280, Height: 900, Hint: webview.HintNone, URL: location})
+	if err != nil {
+		return nil, err
+	}
+	configureWindow(w, location)
+	return w, nil
 }
 func runWindow(ctx context.Context, location string) error {
 	w, err := newWindow(location)
