@@ -1,10 +1,5 @@
-node_modules/
-dist/
-data/
 .qa/
-config.docker.json
-config.local.json
-.cloudflared-token
-public/app.js
-public/scanner.js
-public/zxing_reader.wasm
+bin/
+data/
+*.exe
+smerp
