@@ -211,3 +211,42 @@ func TestHTTPReceiptRetriesAndRequestGuards(t *testing.T) {
 	w = x.post("/schedule", url.Values{"hours": {"25"}})
 	status(t, w, 422)
 }
+
+func TestCatalogReferencesSettingsAndSchedule(t *testing.T) {
+	x := newWebTest(t, emptyData())
+	status(t, x.request("GET", "/materials/new", nil, ""), 422)
+	status(t, x.post("/suppliers/save", url.Values{"name": {"Shop"}, "leadDays": {"2"}}), 303)
+	d, _, _ := x.s.snapshot()
+	supplier := d.Suppliers[0].ID
+	status(t, x.post("/materials/save", url.Values{"name": {"Fabric"}, "unit": {"m"}, "supplierId": {supplier}, "packQuantity": {"10"}, "packPrice": {"60"}, "barcodesEdited": {"1"}}), 303)
+	d, _, _ = x.s.snapshot()
+	material := d.Materials[0].ID
+	status(t, x.post("/products/save", url.Values{"name": {"Shirt"}, "minutes": {"15"}, "recipeMaterial": {material}, "recipeQuantity": {"1.25"}}), 303)
+	d, _, _ = x.s.snapshot()
+	product := d.Products[0].ID
+	status(t, x.post("/suppliers/"+supplier+"/delete", nil), 422)
+	status(t, x.post("/materials/"+material+"/delete", nil), 422)
+	status(t, x.post("/products/"+product+"/delete", nil), 303)
+	status(t, x.post("/materials/"+material+"/delete", nil), 303)
+	status(t, x.post("/suppliers/"+supplier+"/delete", nil), 303)
+	status(t, x.post("/settings", url.Values{"title": {"Workshop"}, "subtitle": {""}, "hourlyRate": {"18.01"}, "currency": {"eur"}, "returnTo": {"/orders"}}), 303)
+	d, _, _ = x.s.snapshot()
+	if d.Settings.Title != "Workshop" || d.Settings.Subtitle != "" || d.Settings.Currency != "EUR" {
+		t.Fatal("settings not saved")
+	}
+	before := x.s.backup()
+	status(t, x.post("/settings", url.Values{"title": {"Bad"}, "hourlyRate": {"1"}, "currency": {"ZZZ"}}), 422)
+	if !bytes.Equal(before, x.s.backup()) {
+		t.Fatal("invalid currency changed settings")
+	}
+	status(t, x.post("/schedule", url.Values{"hours": {"4", "4", "4", "4", "3.5", "0", "0"}, "daysOff": {"2026-12-25", "2026-12-25"}, "newDayOff": {"2026-12-31"}}), 303)
+	d, _, _ = x.s.snapshot()
+	if len(d.Schedule.DaysOff) != 2 || d.Schedule.Hours[4] != "3.5" {
+		t.Fatal("schedule not saved")
+	}
+	before = x.s.backup()
+	status(t, x.post("/schedule", url.Values{"hours": {"4", "4", "4", "4", "4", "0", "0"}, "daysOff": {"2026-02-30"}}), 422)
+	if !bytes.Equal(before, x.s.backup()) {
+		t.Fatal("invalid date changed schedule")
+	}
+}

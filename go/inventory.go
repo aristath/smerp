@@ -186,7 +186,7 @@ func (d *Data) changeStock(kind, id, value string, receipt bool, reason string) 
 		if receipt {
 			target = target.Add(n(m.Stock))
 		}
-		if target.LessThan(d.reservedMaterials()[id]) {
+		if !receipt && target.LessThan(d.reservedMaterials()[id]) {
 			return errors.New("This would remove materials reserved for orders. Cancel the affected order first.")
 		}
 		if _, err := parseAmount(target.String(), "Stock", false); err != nil {
@@ -210,7 +210,7 @@ func (d *Data) changeStock(kind, id, value string, receipt bool, reason string) 
 	if receipt {
 		target = target.Add(whole(p.Stock))
 	}
-	if target.GreaterThan(n("1000000000")) || target.LessThan(whole(d.productReservations()[id])) {
+	if target.GreaterThan(n("1000000000")) || (!receipt && target.LessThan(whole(d.productReservations()[id]))) {
 		return errors.New("This stock count is too large or would remove reserved products.")
 	}
 	d.movement(p.Name, target.Sub(whole(p.Stock)), "products", reason)

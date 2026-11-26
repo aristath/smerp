@@ -216,19 +216,6 @@ func stockURL(kind, id, mode, order string) string {
 	}
 	return "/inventory/edit?" + q.Encode()
 }
-func joinedCuts(need Need) string {
-	unit := strings.ToLower(strings.TrimSpace(need.Material.Unit))
-	parts := []string{}
-	for _, c := range need.Cuts {
-		quantity, u := c.Quantity, need.Material.Unit
-		if unit == "m" && n(quantity).LessThan(whole(1)) {
-			quantity = n(quantity).Mul(whole(100)).String()
-			u = "cm"
-		}
-		parts = append(parts, fmt.Sprintf("%d × %s %s", c.Count, quantity, u))
-	}
-	return strings.Join(parts, ", ")
-}
 func isLength(s string) bool {
 	return slices.Contains([]string{"m", "cm", "mm"}, strings.ToLower(strings.TrimSpace(s)))
 }
@@ -274,12 +261,14 @@ var views = template.Must(template.New("ui").Funcs(template.FuncMap{
 			return "Quantity received"
 		}
 		return "Actual quantity on the shelf"
-	}, "reasonLabel": func(s string) string {
+	},
+	"reasonLabel": func(s string) string {
 		if s == "receive" {
 			return "Received stock"
 		}
 		return "Stock count correction"
-	}, "supplierCount": func(d *Data, id string) int {
+	},
+	"supplierCount": func(d *Data, id string) int {
 		count := 0
 		for _, m := range d.Materials {
 			if m.SupplierID == id {
@@ -287,24 +276,38 @@ var views = template.Must(template.New("ui").Funcs(template.FuncMap{
 			}
 		}
 		return count
-	}, "lowCount": func(p *Page) int { return len(p.LowMaterials) + len(p.LowProducts) }, "subtract": func(a, b int) int { return a - b }, "textInput": textInput, "numericInput": numericInput, "dateInput": dateInput, "money": money, "date": prettyDate, "duration": duration, "number": n, "intNumber": whole, "intString": strconv.Itoa, "stockURL": stockURL, "icon": icon, "status": func(s string) string { return statuses[s] }, "lower": strings.ToLower, "contains": strings.Contains, "isLength": isLength, "cuts": joinedCuts, "formats": func() []string { return barcodeFormats }, "formatLabel": func(s string) string { return strings.ReplaceAll(s, "_", "-") }, "ptrString": func(s *string) string {
-		if s == nil {
-			return ""
-		}
-		return *s
-	}, "ptrInt": func(s *int) string {
-		if s == nil {
-			return ""
-		}
-		return strconv.Itoa(*s)
-	}, "multiply": func(a string, b int) number { return n(a).Mul(whole(b)) }, "unitCost": func(m Material) string { return divide(n(m.PackPrice), n(m.PackQuantity)).Round(4).String() }, "positiveBalance": func(v number) string {
+	},
+	"lowCount":     func(p *Page) int { return len(p.LowMaterials) + len(p.LowProducts) },
+	"subtract":     func(a, b int) int { return a - b },
+	"textInput":    textInput,
+	"numericInput": numericInput,
+	"dateInput":    dateInput,
+	"money":        money,
+	"date":         prettyDate,
+	"duration":     duration,
+	"number":       n,
+	"intNumber":    whole,
+	"stockURL":     stockURL,
+	"icon":         icon,
+	"status":       func(s string) string { return statuses[s] },
+	"lower":        strings.ToLower,
+	"isLength":     isLength,
+	"formats":      func() []string { return barcodeFormats },
+	"formatLabel":  func(s string) string { return strings.ReplaceAll(s, "_", "-") },
+	"ptrString":    ptrString,
+	"ptrInt":       ptrInt,
+	"multiply":     func(a string, b int) number { return n(a).Mul(whole(b)) },
+	"unitCost":     func(m Material) string { return divide(n(m.PackPrice), n(m.PackQuantity)).Round(4).String() },
+	"positiveBalance": func(v number) string {
 		if !v.IsNegative() {
 			return "+" + v.String()
 		}
 		return v.String()
-	}, "nav": func() [][3]string {
+	},
+	"nav": func() [][3]string {
 		return [][3]string{{"/", "Overview", "overview"}, {"/orders", "Orders", "orders"}, {"/materials", "Materials", "materials"}, {"/suppliers", "Suppliers", "suppliers"}, {"/products", "Products", "products"}, {"/inventory", "Inventory", "inventory"}, {"/schedule", "Work schedule", "schedule"}}
-	}, "weekdays": func() []string {
+	},
+	"weekdays": func() []string {
 		return []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 	},
 }).ParseFS(content, "templates/*.html"))
