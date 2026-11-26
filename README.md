@@ -1,111 +1,164 @@
 # Smerp
 
-The existing Smerp interface, with a Go backend and one JSON data file. Supports browser access and a system-WebView application window on Windows, macOS, and Linux. No Node runtime, database, account service, or internet connection is needed for local use. Android is outside this version's scope.
+Smerp is a planner for small workshops. Track your supplies, calculate what each product costs to make, manage customer orders, and see what you need to buy and produce.
 
-## Build
+Use it on Windows, macOS or Linux, in an app window or your web browser. You can also open the same workshop from a phone or tablet.
 
-Requires Go 1.26 or newer and the native WebView development tools below. Run commands from the repository root. The Go module has two direct dependencies: [decimal arithmetic](https://github.com/shopspring/decimal) and the [system-WebView binding](https://github.com/samcharles93/webview_go). HTTP, templates, JSON, persistence, and configuration use the standard library. HTML, CSS, JavaScript, icons, and scanner WASM are embedded in the executable.
+![Workshop overview showing material shortages, open orders and stock warnings](docs/images/overview.png)
 
-### Linux
+*Screenshots show an example workshop.*
 
-Install a C/C++ compiler, `pkg-config`, GTK 3 and WebKitGTK 4.1 development packages:
+## Start Smerp
+
+Extract the package for your computer, then open the app:
+
+| Computer | Package | Start |
+| --- | --- | --- |
+| Windows 10/11, 64-bit | `Smerp-windows-amd64.zip` | Open `smerp.exe`. |
+| Mac, Intel or Apple Silicon, macOS 12+ | `Smerp-macos-universal.zip` | Copy `Smerp.app` to Applications and open it. |
+| Linux, 64-bit | `Smerp-linux-amd64.tar.gz` | Run `./smerp` from the extracted folder. |
+
+If you have the source code instead of a package, follow [Build Smerp](docs/building.md).
+
+Windows and Linux open your browser at **http://127.0.0.1:3210**. The Mac app opens its own window. Your first workshop is empty; follow the setup steps below.
+
+For a dedicated window on Windows, run `.\smerp.exe -mode window` in PowerShell; on Linux, run `./smerp -mode window`. For browser mode on a Mac, run `/Applications/Smerp.app/Contents/MacOS/smerp -mode browser` in Terminal.
+
+Closing a browser tab leaves Smerp running. Stop it with **Ctrl+C** in its terminal when you finish. Closing the dedicated app window stops Smerp.
+
+### If the app will not open
+
+- **Windows app window:** install the [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download) if Smerp reports that it is missing.
+- **Mac:** the supplied app is not notarized. If macOS blocks its first launch, follow [Apple's instructions for opening an app you trust](https://support.apple.com/en-us/102445).
+- **Linux:** install the runtime libraries below. The supplied package needs glibc 2.34 or newer.
 
 ```sh
 # Debian / Ubuntu
-sudo apt install build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev
+sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0
+
 # Fedora
-sudo dnf install gcc gcc-c++ pkgconf-pkg-config gtk3-devel webkit2gtk4.1-devel
-
-./build.sh
-./bin/smerp -mode browser
+sudo dnf install gtk3 webkit2gtk4.1
 ```
 
-This build deliberately uses the GTK 3 / WebKitGTK 4.1 backend. Its runtime libraries must also be installed on machines receiving the executable (`libgtk-3-0` / `libwebkit2gtk-4.1-0` on Debian-family systems, `gtk3` / `webkit2gtk4.1` on Fedora).
+If port 3210 is already in use, check whether Smerp is already running and open its address. To use another port, start it with `-listen 127.0.0.1:3211`.
 
-### macOS
+## Set up your workshop
 
-Use macOS 12 or newer, Go, and Xcode Command Line Tools (`xcode-select --install`). Build natively on the target Mac:
+1. Open **Settings**. Set your workshop title, **Currency code** and **Your pay per hour**. The hourly rate is how much your production time should earn.
+2. Open **Work schedule**. Enter the hours you can work on each day and add any dates off. Smerp uses these to estimate when orders will be ready.
+3. In **Suppliers**, add each supplier's contact details and delivery time in business days.
+4. In **Materials**, add your supplies. Choose a supplier and measurement unit, then enter the purchase quantity and its price. For a 10 m roll costing EUR 60, enter **10** as the purchase quantity and **60** as the price; Smerp calculates the cost per metre.
+5. In **Inventory**, use **Correct count** to enter what is already on the shelf. Enter the total you counted, rather than the amount to add.
+6. In **Products**, add what you make. Enter the minutes needed for one unit and the materials used in that one unit.
 
-```sh
-GOTOOLCHAIN=go1.26.11 ./build.sh
-open bin/Smerp.app
-```
+You can set low-stock warning levels on materials and products. Leave the warning field blank to turn it off.
 
-The app bundle opens the dedicated window. Its `Info.plist` supplies the required camera and local-network permission descriptions; it is ad-hoc signed for local use. System WebKit supplies the renderer. To start browser or server mode from Terminal:
+## Work out a product's price
 
-```sh
-bin/Smerp.app/Contents/MacOS/smerp -mode browser
-bin/Smerp.app/Contents/MacOS/smerp -mode server -listen 0.0.0.0:3210
-```
+Open **Products → New product**, or edit an existing product. Add a material row for each ingredient and enter the quantity used in one finished item. The cost panel updates as you edit.
 
-Builds use the Mac's current architecture. Go 1.26 retains macOS 12 support; Go 1.27 requires macOS 13. Publishing signed/notarized installers is not part of these local build instructions.
+![Product recipe showing material costs, time and the minimum selling price](docs/images/product-cost.png)
 
-### Windows
+**Minimum selling price** covers the materials and your time, rounded upward to the next cent. In this example, EUR 8.12 of materials plus EUR 6.00 of work gives a minimum of **EUR 14.12**.
 
-Install Go and a C/C++ toolchain, such as MSYS2's UCRT64 GCC/G++ toolchain. Put the toolchain's `bin` directory on `PATH` so Go can find `gcc` and `g++`. Microsoft Edge WebView2 Runtime must be installed. The Go binding includes the necessary WebView2 build headers.
+Set the selling price when you enter an order. Allow for your desired profit and any costs you need to cover beyond materials and production time, such as packaging, postage or tax.
 
-From PowerShell:
+Changing the currency changes the labels; it does not convert existing amounts.
 
-```powershell
-.\build.ps1
-.\bin\smerp.exe -mode browser
-.\bin\smerp.exe -mode window
-```
+## Take an order from quote to handover
 
-The binary supports both modes; it also supports `-mode server`. Build natively on Windows. Camera access additionally depends on Windows privacy settings.
+1. Choose **New order**. Enter the customer, an optional requested date, and the products, quantities and agreed prices. Save the order.
+2. Review its costs, materials and estimated ready date. A **Pending** order is a quote and does not reserve stock. You can still edit it.
+3. When the customer accepts, choose **Confirm and reserve stock**. Smerp reserves available finished products and materials. The recipe, costs, hourly rate and currency are saved for this order.
+4. As you finish a batch, choose **Record production** next to that product on the order. Enter the number you made. Smerp deducts its materials and holds the finished items for the customer. You can record several batches.
+5. When everything is ready, choose **Complete and hand over**. The delivered products leave inventory and the order becomes **Completed**.
 
-### Built downloads
+![An order in dark mode showing products already made, remaining work and allocated materials](docs/images/order.png)
 
-The desktop archives are in `bin/`: `Smerp-windows-amd64.zip`, `Smerp-macos-universal.zip` (Intel and Apple Silicon), and `Smerp-linux-amd64.tar.gz`. Each contains the executable, run instructions and licenses; `bin/SHA256SUMS` records their checksums. The Mac app is ad-hoc signed, without Apple notarization. See [VERIFICATION.md](VERIFICATION.md) for build tools and actual platform coverage.
+If finished products arrive separately after you confirm an order, receive them in **Inventory**. They can fulfil that order through **Complete and hand over** once there are enough available.
 
-The previous Node.js application is preserved in [legacy-node.js/](legacy-node.js/README.md), with its own build/run instructions, configuration and dependencies.
+**Cancel order** releases unused reservations. Materials already used stay used, and products already made stay in stock. **Delete order** removes the order without reversing stock changes or erasing stock history.
 
-## Run
+## See what needs buying and making
 
-```sh
-smerp -mode browser       # serve the app and open your normal browser
-smerp -mode window        # serve the same app in a dedicated system-WebView window
-smerp -mode server        # serve without opening an interface
-```
+The **Overview** brings together material requirements, orders waiting to be finished, remaining production time and low-stock warnings. Open an order to see its own materials, purchase suggestions and next action.
 
-Use the executable path produced by the platform build above. The default address is `http://127.0.0.1:3210`. Only one process should own a data file; use its browser/window interface and other devices to access that same process. Closing the browser leaves its server running; Ctrl+C stops it. Closing the dedicated window stops its server, so other devices lose access too.
+The material tabs answer two different questions:
 
-Flags:
+- **Total:** is there enough stock for all open orders together? Stock is counted once.
+- **Per order:** is there enough for each order considered on its own?
 
-| Flag | Meaning |
+For example, with 10 m of fabric and two orders needing 6 m each, each order has enough when viewed individually. The total view shows a 2 m shortage. Materials reserved for a confirmed order remain protected when you record production for another order.
+
+Purchase suggestions round missing material up to complete supplier packs. Arrival estimates assume you buy today and use the supplier's Monday–Friday delivery time. Completion estimates also use your work schedule, dates off and confirmed workload. They assume the full working hours set for today are available.
+
+## Receive supplies
+
+Open **Inventory → Received materials**:
+
+1. Choose **Scan barcode** and allow camera access. Alternatively, expand **Enter a barcode manually**, choose its format, enter the code and press **Find barcode**. Use **Add without a barcode** to choose a material directly.
+2. Enter the quantity received in the material's unit, then choose **Add to delivery**.
+3. Repeat for the other items in the delivery. An unfamiliar barcode can be assigned to an existing material or used to add a new material.
+4. Review **This delivery** and choose **Save received materials**. Stock changes only when you save the delivery.
+
+![Received materials staged together for review before saving](docs/images/receiving.png)
+
+For a 10 m roll of fabric, receive **10 m**, rather than one roll. Material quantities can be fractional; finished-product counts are whole numbers.
+
+Supported codes are EAN-13, EAN-8, UPC-A, UPC-E and QR. A material can have several codes; edit its material record to manage them. QR contents identify a supply and are never opened as links.
+
+Camera scanning needs permission and an HTTPS address or localhost. Manual entry and ordinary forms work over local-network HTTP. Press **Scan barcode** again to deliberately scan the same code a second time.
+
+## Keep inventory accurate
+
+**Inventory** shows three quantities:
+
+| Quantity | Meaning |
 | --- | --- |
-| `-mode browser\|window\|server` | How to display/start the application; default `browser`, or `window` when launched inside the macOS app bundle. |
-| `-listen 127.0.0.1:3210` | Address to listen on. Use `0.0.0.0:3210` to allow other devices. |
-| `-data PATH` | JSON data file. The absolute path is printed at startup. |
-| `-origin https://workshop.example` | Optional canonical URL when using a reverse proxy; no trailing slash. Leave unset for normal local/LAN use. |
+| On shelf | Everything physically in stock. |
+| Reserved | Stock held for confirmed orders. |
+| Available | Stock left for other work after reservations. |
 
-The default data file is `smerp/workshop.json` under the OS user configuration directory: `%AppData%` on Windows, `~/Library/Application Support` on macOS, and `$XDG_CONFIG_HOME` or `~/.config` on Linux. Nothing is loaded from the old Node app. An empty installation is ready for setup; its file is created on the first successful change. All dates and estimates use the backend host's system time and local time zone.
+Use **Receive** to add stock and **Correct count** to replace the recorded total with a physical count. Add a reason for a correction so it is clear in **Recent stock changes**. Counts cannot be reduced below reserved quantities.
 
-### Other devices
+For products made for general stock, use **Make**. For a customer's order, record production from that order so the finished products stay assigned to it. Use **Receive** when finished products arrive without being made from your stored materials.
 
-Start with `-listen 0.0.0.0:3210`, allow that port through the host firewall on your trusted network, and open `http://HOST-LAN-IP:3210` on the other device. The host must stay on and the application must keep running. The other device is a browser client, not an independent installation.
+## Use your phone or tablet
 
-Camera scanning needs HTTPS or localhost, plus camera permission. Local-network HTTP supports manual barcode entry and ordinary forms. For camera scanning from another device, provide HTTPS using a reverse proxy and set `-origin` to that canonical HTTPS address. All clients then use that address. The proxy must preserve the public Host header. Public internet access needs access control supplied by the deployment; the app does not include accounts. It does not automatically install a tunnel, publish a port, or change your firewall.
-
-## Data, backups, and stock
-
-Changes are validated and written atomically before becoming visible. Invalid actions and failed writes leave saved data intact. Old forms cannot overwrite newer changes. An invalid working file opens a recovery screen, which offers its original contents for download and can restore a valid backup.
-
-Use **Settings → Backup and restore** to download a complete JSON backup. Store a copy outside the host. Restore validates and previews the file before an explicit full replacement. Window mode uses the native download/save facility. Go backups use their own `smerp-go` format. There are no old-format readers or migration tools.
-
-Individual order views show isolated material sufficiency. The Total materials view shares stock across all open orders. Confirmed orders still protect their reserved materials from another order's production.
-
-Finished stock received after confirmation can fulfil an order through its existing **Complete and hand over** action. This uses stock for the order being handed over; it does not automatically distribute new stock between orders, consume its materials again, or create another production batch.
-
-## Checks
-
-On Linux:
+Run Smerp on the computer that holds your workshop, allowing access on your network:
 
 ```sh
-go test -tags webkitgtk_41 ./...
-go test -race -tags webkitgtk_41 ./...
-go vet -tags webkitgtk_41 ./...
-SMERP_WINDOW_TEST=1 GDK_BACKEND=x11 xvfb-run -a go test -tags webkitgtk_41 -run TestWindowUI -count=1 -timeout 60s -v
+./smerp -listen 0.0.0.0:3210
 ```
 
-On Windows/macOS, use `go test ./...` and `go vet ./...`; the native UI test is opt-in with `SMERP_WINDOW_TEST=1` and requires an interactive graphical session. Regular tests use synthetic workshop data in temporary directories. `TestWindowUI` renders the actual interface in the system WebView and exercises both themes, settings, live costing, and staged receiving. See [VERIFICATION.md](VERIFICATION.md) for the checks actually performed and platform limitations.
+On Windows, use `.\smerp.exe -listen 0.0.0.0:3210`. On a Mac, use `/Applications/Smerp.app/Contents/MacOS/smerp -mode browser -listen 0.0.0.0:3210`.
+
+Allow that port through the host computer's firewall on your trusted network. On your phone, open `http://COMPUTER-IP:3210`, replacing `COMPUTER-IP` with that computer's local IP address. Bookmark it. The computer must stay on, awake and running Smerp.
+
+On small screens, use the bottom navigation for **Overview**, **Orders** and **Inventory**, and open **Menu** for the other pages. Swipe wide tables sideways for more columns. The sun/moon button switches between light and dark modes; your choice is remembered on each browser or device.
+
+<img src="docs/images/mobile.png" alt="Smerp's order view on a phone in dark mode" width="360">
+
+Anyone who can reach the app can edit the workshop. Keep direct access on a trusted network. Phone camera scanning needs HTTPS. For access away from the workshop, protect the HTTPS address with external access control; see [HTTPS access](docs/building.md#https-access).
+
+If an older form reports that something changed on another device, review the latest values before saving again.
+
+## Back up and restore your workshop
+
+Open **Settings → Backup and restore** and choose **Download backup**. Keep a copy somewhere other than the computer running Smerp.
+
+To restore one, select the file under **Restore a backup** and choose **Preview backup**. Review the summary, then choose **Replace and restore**. Restoring replaces the current workshop, including inventory, orders and settings.
+
+If Smerp reports that its working file needs attention, download the original file from the recovery screen, then restore a valid backup.
+
+Your workshop is saved on the computer running Smerp. The default file location is:
+
+| Computer | Data file |
+| --- | --- |
+| Windows | `%AppData%\smerp\workshop.json` |
+| Mac | `~/Library/Application Support/smerp/workshop.json` |
+| Linux | `~/.config/smerp/workshop.json`, or `$XDG_CONFIG_HOME/smerp/workshop.json` when set |
+
+To choose another location, start Smerp with `-data PATH`. Use one running Smerp process for each data file and connect your other devices to that process.
+
+[Build and run options](docs/building.md) · [Behaviour reference](docs/behaviour.md) · [Third-party notices](licenses/README.md)
