@@ -39,6 +39,7 @@ dependencies {
 
 val copyNotices by tasks.registering(Copy::class) {
  from(rootProject.file("../licenses"))
+ filePermissions { unix("0644") }
  into(layout.buildDirectory.dir("generated/notices/licenses"))
 }
 tasks.named("preBuild") { dependsOn(copyNotices) }
