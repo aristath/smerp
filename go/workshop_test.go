@@ -301,3 +301,18 @@ func TestFailedAtomicReplacementRemovesTemporaryFile(t *testing.T) {
 		}
 	}
 }
+
+func TestMinimumPriceDoesNotRoundDivisionResidueUpACent(t *testing.T) {
+	q := &Quote{Name: "Exact one", Minutes: "0", HourlyRate: "0", Recipe: []Ingredient{
+		{MaterialID: "a", Quantity: "1", PackQuantity: "6", PackPrice: "1"},
+		{MaterialID: "b", Quantity: "1", PackQuantity: "6", PackPrice: "1"},
+		{MaterialID: "c", Quantity: "1", PackQuantity: "3", PackPrice: "2"},
+	}}
+	// 1/6 + 1/6 + 2/3 is exactly one, not one plus a division-rounding remainder.
+	equalNumber(t, q.minimumPrice(), "1")
+}
+
+func TestTinyPositiveCostStillRoundsUp(t *testing.T) {
+	q := &Quote{Name: "Tiny", Minutes: "0", HourlyRate: "0", Recipe: []Ingredient{{MaterialID: "a", Quantity: "0.000001", PackQuantity: "1000000000", PackPrice: "0.000001"}}}
+	equalNumber(t, q.minimumPrice(), "0.01")
+}

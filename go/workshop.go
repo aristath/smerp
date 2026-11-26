@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"regexp"
 	"slices"
 	"strings"
@@ -242,8 +243,25 @@ func (q *Quote) materialCost() number {
 	}
 	return total
 }
-func (q *Quote) labourCost() number   { return divide(n(q.Minutes).Mul(n(q.HourlyRate)), whole(60)) }
-func (q *Quote) minimumPrice() number { return q.materialCost().Add(q.labourCost()).RoundCeil(2) }
+func (q *Quote) labourCost() number { return divide(n(q.Minutes).Mul(n(q.HourlyRate)), whole(60)) }
+func (q *Quote) minimumPrice() number {
+	// Round upward once, from exact fractions, so repeated divisions cannot invent a cent.
+	total := new(big.Rat)
+	for _, r := range q.Recipe {
+		term := new(big.Rat).Mul(n(r.Quantity).Rat(), n(r.PackPrice).Rat())
+		term.Quo(term, n(r.PackQuantity).Rat())
+		total.Add(total, term)
+	}
+	labour := new(big.Rat).Mul(n(q.Minutes).Rat(), n(q.HourlyRate).Rat())
+	labour.Quo(labour, big.NewRat(60, 1))
+	total.Add(total, labour).Mul(total, big.NewRat(100, 1))
+	cents, remainder := new(big.Int), new(big.Int)
+	cents.QuoRem(total.Num(), total.Denom(), remainder)
+	if remainder.Sign() > 0 {
+		cents.Add(cents, big.NewInt(1))
+	}
+	return decimal.NewFromBigInt(cents, -2)
+}
 func (d *Data) productReservations() map[string]int {
 	result := map[string]int{}
 	for _, o := range d.Orders {
