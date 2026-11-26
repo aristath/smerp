@@ -97,4 +97,4 @@ As of 2026-11-26:
 | Windows x86-64 | Cross-build; backend tests and release executable startup under Wine. | WebView2 window, camera and save dialogs on Windows. |
 | macOS Intel + Apple Silicon | Cross-build, universal app, ad-hoc signature code/resource hashes and macOS 12 headers. | Launch, window, camera and save dialogs on macOS. |
 
-The desktop archives and `SHA256SUMS` are generated under `bin/` and are not tracked in Git. Each package contains run instructions and [third-party notices](../licenses/README.md).
+The three desktop download archives and `SHA256SUMS` are tracked under `bin/`. Rebuild and replace them when publishing updated binaries. Each package contains run instructions and [third-party notices](../licenses/README.md).

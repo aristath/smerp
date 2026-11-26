@@ -14,9 +14,9 @@ Extract the package for your computer, then open the app:
 
 | Computer | Package | Start |
 | --- | --- | --- |
-| Windows 10/11, 64-bit | `Smerp-windows-amd64.zip` | Open `smerp.exe`. |
-| Mac, Intel or Apple Silicon, macOS 12+ | `Smerp-macos-universal.zip` | Copy `Smerp.app` to Applications and open it. |
-| Linux, 64-bit | `Smerp-linux-amd64.tar.gz` | Run `./smerp` from the extracted folder. |
+| Windows 10/11, 64-bit | [Smerp-windows-amd64.zip](bin/Smerp-windows-amd64.zip) | Open `smerp.exe`. |
+| Mac, Intel or Apple Silicon, macOS 12+ | [Smerp-macos-universal.zip](bin/Smerp-macos-universal.zip) | Copy `Smerp.app` to Applications and open it. |
+| Linux, 64-bit | [Smerp-linux-amd64.tar.gz](bin/Smerp-linux-amd64.tar.gz) | Run `./smerp` from the extracted folder. |
 
 If you have the source code instead of a package, follow [Build Smerp](docs/building.md).
 

@@ -1,5 +1,9 @@
 .qa/
-bin/
+/bin/*
+!/bin/Smerp-windows-amd64.zip
+!/bin/Smerp-macos-universal.zip
+!/bin/Smerp-linux-amd64.tar.gz
+!/bin/SHA256SUMS
 data/
 *.exe
 smerp
