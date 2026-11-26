@@ -20,9 +20,9 @@ Extract the package for your computer, then open the app:
 
 If you have the source code instead of a package, follow [Build Smerp](docs/building.md).
 
-Windows and Linux open your browser at **http://127.0.0.1:3210**. The Mac app opens its own window. Your first workshop is empty; follow the setup steps below.
+Smerp opens its own app window. Your first workshop is empty; follow the setup steps below.
 
-For a dedicated window on Windows, run `.\smerp.exe -mode window` in PowerShell; on Linux, run `./smerp -mode window`. For browser mode on a Mac, run `/Applications/Smerp.app/Contents/MacOS/smerp -mode browser` in Terminal.
+To use your browser instead, run `.\smerp.exe -mode browser` in PowerShell on Windows, `./smerp -mode browser` on Linux, or `/Applications/Smerp.app/Contents/MacOS/smerp -mode browser` on a Mac. It opens **http://127.0.0.1:3210**.
 
 Closing a browser tab leaves Smerp running. Stop it with **Ctrl+C** in its terminal when you finish. Closing the dedicated app window stops Smerp.
 
@@ -40,7 +40,7 @@ sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0
 sudo dnf install gtk3 webkit2gtk4.1
 ```
 
-If port 3210 is already in use, check whether Smerp is already running and open its address. To use another port, start it with `-listen 127.0.0.1:3211`.
+If Smerp reports that port 3210 is already in use, close the other running instance and try again. To use another port for a different workshop, choose its data file with `-data PATH` and its port with `-listen 127.0.0.1:3211`.
 
 ## Set up your workshop
 

@@ -45,8 +45,8 @@ From PowerShell:
 
 | Option | Use |
 | --- | --- |
-| `-mode browser` | Open the normal browser; the server keeps running until stopped. Default for standalone executables. |
-| `-mode window` | Open a dedicated app window; closing it stops the server. Default inside the Mac app bundle. |
+| `-mode browser` | Open the normal browser; the server keeps running until stopped. |
+| `-mode window` | Open a dedicated app window; closing it stops the server. Default on every platform. |
 | `-mode server` | Serve without opening an interface. |
 | `-listen 127.0.0.1:3210` | Default listen address. Set `0.0.0.0:3210` for access from other devices. |
 | `-data PATH` | Choose the workshop file. Its absolute path is printed at startup. |

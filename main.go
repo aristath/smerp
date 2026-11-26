@@ -14,31 +14,30 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 )
 
+var mode = flag.String("mode", "window", "window, browser, or server (without opening a UI)")
+
 func main() {
 	if err := run(); err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		if *mode == "window" {
+			showStartupError(err.Error())
+		}
+		os.Exit(1)
 	}
 }
 func run() error {
-	config, err := os.UserConfigDir()
-	if err != nil {
-		return err
-	}
-	defaultMode := "browser"
-	executable, _ := os.Executable()
-	if runtime.GOOS == "darwin" && strings.Contains(executable, ".app/Contents/MacOS/") {
-		defaultMode = "window"
-	}
-	mode := flag.String("mode", defaultMode, "browser, window, or server (without opening a UI)")
+	config, configErr := os.UserConfigDir()
 	address := flag.String("listen", "127.0.0.1:3210", "HTTP listen address; use 0.0.0.0:3210 for other devices")
 	path := flag.String("data", filepath.Join(config, "smerp", "workshop.json"), "workshop JSON file")
 	origin := flag.String("origin", "", "optional browser-facing URL for a reverse proxy")
 	flag.Parse()
+	if configErr != nil {
+		return configErr
+	}
 	if *mode != "browser" && *mode != "window" && *mode != "server" {
 		return errors.New("Mode must be browser, window, or server.")
 	}
@@ -58,7 +57,7 @@ func run() error {
 	}
 	listener, err := net.Listen("tcp", *address)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not start Smerp at %s: %w.\n\nCheck whether another copy of Smerp is running. Close it before trying again.", *address, err)
 	}
 	server := &http.Server{Handler: (&App{store: store, origin: *origin}).handler(), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
 	host, port, _ := net.SplitHostPort(listener.Addr().String())

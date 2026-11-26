@@ -8,6 +8,14 @@ package main
 #include <webkit2/webkit2.h>
 #include <stdlib.h>
 
+static void smerp_show_error(const char *message) {
+ if (!gtk_init_check(NULL,NULL)) return;
+ GtkWidget *dialog=gtk_message_dialog_new(NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,"%s",message);
+ gtk_window_set_title(GTK_WINDOW(dialog),"Smerp could not start");
+ gtk_dialog_run(GTK_DIALOG(dialog));
+ gtk_widget_destroy(dialog);
+}
+
 static gboolean camera_request(WebKitWebView *view, WebKitPermissionRequest *request, gpointer origin) {
  if (!WEBKIT_IS_USER_MEDIA_PERMISSION_REQUEST(request)) return FALSE;
  const char *uri=webkit_web_view_get_uri(view), *allowed=(const char *)origin;
@@ -57,4 +65,10 @@ func configureWindow(w webview.WebView, location string) {
 	origin := C.CString(location)
 	defer C.free(unsafe.Pointer(origin))
 	C.configure_camera(w.NativeHandle(webview.NativeHandleKindBrowserController), origin)
+}
+
+func showStartupError(message string) {
+	text := C.CString(message)
+	defer C.free(unsafe.Pointer(text))
+	C.smerp_show_error(text)
 }

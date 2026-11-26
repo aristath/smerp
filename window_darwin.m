@@ -2,6 +2,18 @@
 #import <WebKit/WebKit.h>
 #import <objc/runtime.h>
 
+void smerp_show_error(const char *message) {
+ [NSApplication sharedApplication];
+ [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+ NSAlert *alert=[[NSAlert alloc] init];
+ alert.messageText=@"Smerp could not start";
+ alert.informativeText=[NSString stringWithUTF8String:message];
+ [alert addButtonWithTitle:@"Close"];
+ [NSApp activateIgnoringOtherApps:YES];
+ [alert runModal];
+ [alert release];
+}
+
 @interface SmerpDownloadDelegate : NSObject <WKNavigationDelegate, WKDownloadDelegate>
 @end
 @implementation SmerpDownloadDelegate
