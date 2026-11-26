@@ -49,8 +49,24 @@ The macOS property list was also parsed and its executable/camera entries checke
 ## Platform qualifications
 
 - **Linux:** native build, unit/HTTP/race checks, browser launch and actual WebKit window rendering/interactions verified. Xvfb needed `GDK_BACKEND=x11` because the workstation otherwise selects its Wayland session. Software-rendering warnings under Xvfb did not prevent the checks passing.
-- **Windows:** implementation uses WebView2, with native build instructions and a PowerShell build entry point. A Windows host/toolchain was unavailable here; Windows compilation, permission dialogs and runtime have not been verified.
-- **macOS:** implementation includes an app bundle build, permission descriptions, system confirmation prompts and native backup-download handling. A Mac/Xcode SDK was unavailable here; macOS compilation, signing and runtime have not been verified.
+- **Windows:** cross-compilation now verified with LLVM-MinGW. The Windows unit/HTTP test executable passed under Wine 11.21, and the actual release executable served health and embedded HTML in server mode under Wine. This is not native Windows qualification; WebView2 rendering, permission dialogs and downloads still need a Windows host.
+- **macOS:** Intel and Apple Silicon cross-compilation now verified using the macOS 14.5 SDK, with a universal app assembled and ad-hoc signed using rcodesign. Both architectures target macOS 12. Native launch, rendering, camera permissions and save dialogs still need a Mac.
 - Native camera/save dialogs require their real platform/OS interactions. Physical camera permission/capture and the save dialogs were not automated by the WebView smoke test. Browser backup/restore and the JSON round trip were verified separately.
 
-No claim is made that Windows/macOS execution or physical-device camera behaviour was tested on this Linux workstation.
+No claim is made that native Windows/macOS execution or physical-device camera behaviour was tested on this Linux workstation.
+
+## Desktop builds
+
+Built from application revision `1ea50df` on 2026-11-26. The additional changes in this build are documentation and compiler-runtime license notices; application source is unchanged.
+
+| Download under `bin/` | Architecture | Build tools |
+| --- | --- | --- |
+| `Smerp-linux-amd64.tar.gz` | Linux x86-64 | Go 1.27.4, Fedora GCC, GTK 3 / WebKitGTK 4.1; `./build.sh`. Requires glibc 2.34 or newer and the runtime libraries described in README. |
+| `Smerp-windows-amd64.zip` | Windows x86-64 | Go 1.27.4, LLVM-MinGW 20261117 UCRT / LLVM 23.1.6; Cgo enabled, target `windows/amd64`, `-trimpath -ldflags='-s -w'`. Imports Windows system/UCRT DLLs; no separate compiler-runtime DLLs are needed. WebView2 Runtime is required for window mode. |
+| `Smerp-macos-universal.zip` | Intel x86-64 + Apple Silicon arm64 | Go 1.26.11, Clang/LLD 23.1.5, macOS 14.5 SDK; target macOS 12, `-trimpath -ldflags='-s -w'`. Go 1.26 preserves the documented macOS 12 minimum. |
+
+The Mac cross-toolchain includes the unmodified `os_version_check.c` from LLVM compiler-rt 23.1.5, compiled for each architecture and linked as the compiler's availability-check runtime. This resolves the WebView binding's Objective-C availability checks without adding application fallbacks. Only system frameworks/dylibs appear in the resulting Mach-O dependencies. `rcodesign` 0.29.0 merges the two executables and ad-hoc signs the complete app bundle after its resources are copied. Its `verify` command reports the empty CMS certificate data in ad-hoc signatures as an error and warns that verification is buggy. An independent check of Apple's signature layout verified every SHA-256 code page, Info.plist, requirements and sealed resource for both architectures, plus the macOS 12 headers. Apple Developer ID signing/notarization and native execution were not performed.
+
+Downloaded tool archives and the SDK were checked against their published SHA-256 values. The archives include run instructions and third-party notices, with their own hashes in `bin/SHA256SUMS`. The native Linux release executable also passed a health/embedded-HTML startup check. Linux race tests and vet passed again for this build; the native rendering evidence above is from the preceding implementation checks.
+
+Tool references: [LLVM-MinGW releases](https://github.com/mstorsjo/llvm-mingw/releases/tag/20261117), [SDK archive](https://github.com/joseluisq/macosx-sdks/releases/tag/14.5), [compiler-rt source](https://github.com/llvm/llvm-project/blob/llvmorg-23.1.5/compiler-rt/lib/builtins/os_version_check.c), [rcodesign](https://github.com/indygreg/apple-platform-rs/releases/tag/apple-codesign/0.29.0), [Go macOS minimums](https://go.dev/doc/go1.27#darwin).

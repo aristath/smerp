@@ -27,7 +27,7 @@ This build deliberately uses the GTK 3 / WebKitGTK 4.1 backend. Its runtime libr
 Use macOS 12 or newer, Go, and Xcode Command Line Tools (`xcode-select --install`). Build natively on the target Mac:
 
 ```sh
-./build.sh
+GOTOOLCHAIN=go1.26.11 ./build.sh
 open bin/Smerp.app
 ```
 
@@ -38,7 +38,7 @@ bin/Smerp.app/Contents/MacOS/smerp -mode browser
 bin/Smerp.app/Contents/MacOS/smerp -mode server -listen 0.0.0.0:3210
 ```
 
-Builds use the Mac's current architecture. Publishing signed/notarized installers is not part of these local build instructions.
+Builds use the Mac's current architecture. Go 1.26 retains macOS 12 support; Go 1.27 requires macOS 13. Publishing signed/notarized installers is not part of these local build instructions.
 
 ### Windows
 
@@ -53,6 +53,10 @@ From PowerShell:
 ```
 
 The binary supports both modes; it also supports `-mode server`. Build natively on Windows. Camera access additionally depends on Windows privacy settings.
+
+### Built downloads
+
+The desktop archives are in `bin/`: `Smerp-windows-amd64.zip`, `Smerp-macos-universal.zip` (Intel and Apple Silicon), and `Smerp-linux-amd64.tar.gz`. Each contains the executable, run instructions and licenses; `bin/SHA256SUMS` records their checksums. The Mac app is ad-hoc signed, without Apple notarization. See [VERIFICATION.md](VERIFICATION.md) for build tools and actual platform coverage.
 
 ## Run
 
