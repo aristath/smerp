@@ -75,9 +75,9 @@ Backups contain the complete workshop. Restore validates and previews the file b
 
 ## Code and checks
 
-- [workshop.go](../workshop.go): records, validation and costing.
-- [inventory.go](../inventory.go): stock operations and order transitions.
-- [estimates.go](../estimates.go): material summaries, purchasing and scheduling.
-- [persistence.go](../persistence.go): saving, backup validation and recovery.
-- [web.go](../web.go), [forms.go](../forms.go), [view.go](../view.go) and [templates](../templates/): interface and request handling.
-- [workshop_test.go](../workshop_test.go), [web_test.go](../web_test.go) and [window_test.go](../window_test.go): behavioural and interface checks.
+- [workshop.go](../internal/workshop/workshop.go): records, validation and costing.
+- [inventory.go](../internal/workshop/inventory.go): stock operations and order transitions.
+- [estimates.go](../internal/workshop/estimates.go): material summaries, purchasing and scheduling.
+- [persistence.go](../internal/workshop/persistence.go): saving, backup validation and recovery.
+- [web.go](../internal/workshop/web.go), [forms.go](../internal/workshop/forms.go), [view.go](../internal/workshop/view.go) and [templates](../internal/workshop/templates/): interface and request handling.
+- [workshop_test.go](../internal/workshop/workshop_test.go), [web_test.go](../internal/workshop/web_test.go) and [window_test.go](../window_test.go): behavioural and interface checks.

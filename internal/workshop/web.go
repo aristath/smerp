@@ -1,4 +1,4 @@
-package main
+package workshop
 
 import (
 	"embed"
@@ -21,6 +21,15 @@ var content embed.FS
 type App struct {
 	store  *Store
 	origin string
+}
+
+// Open serves a workshop and its embedded interface using a local JSON file.
+func Open(path, origin string) (http.Handler, error) {
+	store, err := openStore(path)
+	if err != nil {
+		return nil, err
+	}
+	return (&App{store: store, origin: origin}).handler(), nil
 }
 
 func (a *App) handler() http.Handler {

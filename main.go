@@ -16,6 +16,8 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
+	"smerp/internal/workshop"
 )
 
 var mode = flag.String("mode", "window", "window, browser, or server (without opening a UI)")
@@ -51,7 +53,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	store, err := openStore(absolute)
+	handler, err := workshop.Open(absolute, *origin)
 	if err != nil {
 		return err
 	}
@@ -59,7 +61,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("Could not start Smerp at %s: %w.\n\nCheck whether another copy of Smerp is running. Close it before trying again.", *address, err)
 	}
-	server := &http.Server{Handler: (&App{store: store, origin: *origin}).handler(), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
+	server := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
 	host, port, _ := net.SplitHostPort(listener.Addr().String())
 	ip := net.ParseIP(host)
 	if ip == nil || ip.IsUnspecified() {

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"runtime"
+	"smerp/internal/workshop"
 	"strings"
 	"testing"
 	"time"
@@ -17,8 +19,11 @@ func TestWindowUI(t *testing.T) {
 	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
-	s := testStore(t, fixture())
-	server := httptest.NewServer((&App{store: s}).handler())
+	path := filepath.Join(t.TempDir(), "workshop.json")
+	seedWindowWorkshop(t, path)
+	handler, err := workshop.Open(path, "")
+	must(t, err)
+	server := httptest.NewServer(handler)
 	defer server.Close()
 	w, err := newWindow(server.URL)
 	must(t, err)
@@ -97,7 +102,35 @@ func TestWindowUI(t *testing.T) {
 	if t.Failed() {
 		return
 	}
-	if raw := string(s.backup()); strings.Contains(raw, "test-code") {
+	raw, err := os.ReadFile(path)
+	must(t, err)
+	if strings.Contains(string(raw), "test-code") {
 		t.Fatal("staging delivery wrote inventory")
 	}
+}
+
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func seedWindowWorkshop(t *testing.T, path string) {
+	t.Helper()
+	d := workshop.Data{
+		Format: "smerp-go", Version: 1,
+		Settings:  workshop.Settings{Title: "Workshop", Subtitle: "Production planning", HourlyRate: "18", Currency: "EUR"},
+		Schedule:  workshop.Schedule{Hours: []string{"4", "4", "4", "4", "4", "0", "0"}, DaysOff: []string{}},
+		Suppliers: []workshop.Supplier{{ID: "supplier", Name: "Metal shop", LeadDays: 5}},
+		Materials: []workshop.Material{
+			{ID: "fasteners", Name: "Fasteners", Unit: "pieces", PackQuantity: "100", PackPrice: "10", SupplierID: "supplier", Stock: "100", Barcodes: []workshop.Barcode{}},
+			{ID: "sheet", Name: "Sheet", Unit: "m", PackQuantity: "30", PackPrice: "40", SupplierID: "supplier", Stock: "50", Barcodes: []workshop.Barcode{}},
+		},
+		Products: []workshop.Product{{ID: "tray", Name: "Tray", Minutes: "5", Recipe: []workshop.Ingredient{{MaterialID: "fasteners", Quantity: "4"}, {MaterialID: "sheet", Quantity: "0.3"}}}},
+		Orders:   []workshop.Order{}, Movements: []workshop.Movement{},
+	}
+	raw, err := json.Marshal(d)
+	must(t, err)
+	must(t, os.WriteFile(path, raw, 0600))
 }

@@ -1,4 +1,4 @@
-package main
+package workshop
 
 import (
 	"crypto/rand"
